@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BudgetMate AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="logo">💰 BudgetMate <span class="ai-badge">AI</span></div>
+    <p class="tagline">Your AI-powered budgeting assistant</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="planner">Budget Planner</button>
+    <button class="tab-btn" data-tab="forecast">Spending Forecast</button>
+    <button class="tab-btn" data-tab="coach">Savings Coach</button>
+  </nav>
+
+  <main class="container">
+
+    <!-- ===== TAB 1: BUDGET PLANNER ===== -->
+    <section id="planner" class="tab-panel active">
+      <div class="card">
+        <h2>Set Up Your Budget</h2>
+        <form id="category-form" class="inline-form">
+          <input type="text" id="category-name" placeholder="Category (e.g. Food)" required />
+          <input type="number" id="category-budget" placeholder="Budget ($)" min="0" required />
+          <button type="submit">Add Category</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Log a Transaction</h2>
+        <form id="transaction-form" class="inline-form">
+          <input type="text" id="txn-category" placeholder="Category" required />
+          <input type="number" id="txn-amount" placeholder="Amount ($)" min="0" required />
+          <input type="text" id="txn-note" placeholder="Note (optional)" />
+          <button type="submit">Log Spend</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Your Budget Overview</h2>
+        <div id="budget-summary" class="summary-grid">
+          <p class="empty-state">Add a category and log a transaction to see your progress here.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB 2: SPENDING FORECAST ===== -->
+    <section id="forecast" class="tab-panel">
+      <div class="card">
+        <h2>This Month's Projection</h2>
+        <div id="forecast-content" class="forecast-box">
+          <p class="empty-state">Log some transactions in the Budget Planner tab first.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB 3: SAVINGS COACH ===== -->
+    <section id="coach" class="tab-panel">
+      <div class="card">
+        <h2>Your AI Savings Coach</h2>
+        <button id="get-tips-btn">Get My Savings Tips</button>
+        <div id="tips-content" class="tips-box"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

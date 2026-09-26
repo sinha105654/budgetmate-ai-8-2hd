@@ -20,7 +20,7 @@ function check(label, condition, detail) {
 async function run() {
   // Step 0: server alive
   try {
-    const res = await fetch(`${BASE_URL}/`);
+    const res = await fetch(`${BASE_URL}/api/status`);
     const data = await res.json();
     check('Server is running and reachable', res.status === 200 && data.message, JSON.stringify(data));
   } catch (e) {

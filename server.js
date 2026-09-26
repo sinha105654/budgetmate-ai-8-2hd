@@ -14,13 +14,14 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 app.use('/api/users', userRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/forecast', forecastRoutes);
 app.use('/api/savings-tips', savingsCoachRoutes);
 
-app.get('/', (req, res) => {
+app.get('/api/status', (req, res) => {
   res.json({ message: 'BudgetMate AI API is running' });
 });
 
