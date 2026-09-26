@@ -19,6 +19,20 @@ router.get('/:userId', async (req, res) => {
       1,
       Math.ceil((Date.now() - new Date(firstDate)) / (1000 * 60 * 60 * 24))
     );
+
+    // Not enough history yet to extrapolate responsibly - a single day's spending
+    // projected across 30 days produces wildly unrealistic numbers. Show the
+    // actual total instead, with a note, until there's at least 3 days of data.
+    const MIN_DAYS_FOR_FORECAST = 3;
+    if (daysSoFar < MIN_DAYS_FOR_FORECAST) {
+      return res.json({
+        notEnoughData: true,
+        totalSoFar: Math.round(total),
+        daysSoFar,
+        message: `Log spending for ${MIN_DAYS_FOR_FORECAST - daysSoFar} more day(s) to see an accurate forecast.`,
+      });
+    }
+
     const dailyAverage = total / daysSoFar;
     const forecastTotal = Math.round(dailyAverage * 30);
 

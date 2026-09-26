@@ -17,31 +17,25 @@ router.get('/:userId', async (req, res) => {
       spending[t.category] = (spending[t.category] || 0) + t.amount;
     });
 
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       // Fallback if no API key is set yet - keeps the app usable while you set things up
       return res.json({ tips: fallbackTips(spending), source: 'fallback' });
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 300,
-        messages: [
-          {
-            role: 'user',
-            content: `You are a friendly financial coach. Given this month's spending by category in AUD: ${JSON.stringify(
-              spending
-            )}, reply with ONLY a JSON array of exactly 3 short, practical, encouraging savings tips (each under 20 words). No extra text, no markdown.`,
-          },
-        ],
-      }),
-    });
+    const prompt = `You are a friendly financial coach. Given this month's spending by category in AUD: ${JSON.stringify(
+      spending
+    )}, reply with ONLY a JSON array of exactly 3 short, practical, encouraging savings tips (each under 20 words). No extra text, no markdown.`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      }
+    );
 
     if (!response.ok) {
       // API failed - don't break the demo, fall back gracefully
@@ -49,7 +43,7 @@ router.get('/:userId', async (req, res) => {
     }
 
     const data = await response.json();
-    const rawText = data.content?.[0]?.text || '[]';
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
     let tips;
     try {
       tips = JSON.parse(rawText.replace(/```json|```/g, '').trim());

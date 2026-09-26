@@ -105,8 +105,17 @@ async function loadForecast() {
   const res = await fetch(`${API_BASE}/forecast/${currentUserId}`);
   const data = await res.json();
 
-  if (!data.forecastTotal) {
+  if (!data.daysSoFar) {
     container.innerHTML = '<p class="empty-state">Log some transactions in the Budget Planner tab first.</p>';
+    return;
+  }
+
+  if (data.notEnoughData) {
+    container.innerHTML = `
+      <div class="forecast-label">Total spent so far</div>
+      <div class="forecast-number">$${data.totalSoFar.toLocaleString()}</div>
+      <div class="forecast-label">${escapeHtml(data.message)}</div>
+    `;
     return;
   }
 
