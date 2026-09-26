@@ -1,1 +1,36 @@
-HD task
+# BudgetMate AI - High-Fidelity Prototype
+
+SIT317/SIT726 Task 8.2HD - Individual High-Fidelity Prototype, built by Yousuf Sinha
+(Student ID: s226032987), based on the team's BudgetMate AI concept from Group 5's
+SIT726 project.
+
+BudgetMate AI is an AI-powered budgeting assistant aimed at young professionals in
+Australia who want a simple way to track spending, forecast their month, and get
+genuinely useful savings advice - without needing to be a finance expert.
+
+## Features
+
+- **Budget Planner** - set a budget per category, log transactions, and see live,
+  colour-coded progress bars (green = on track, gold = near the limit, red = over
+  budget). Categories can be removed at any time without affecting past transactions.
+- **Spending Forecast** - projects the month's likely total spend from real logged
+  transactions, with a rising/falling trend indicator. Shows the actual total spent
+  so far (rather than an unreliable projection) until at least 3 days of history
+  exist, to avoid unrealistic numbers from too little data.
+- **Daily Spending Calendar** - a heatmap-style calendar for the current month,
+  showing spend intensity per day at a glance.
+- **AI Savings Coach** - sends the user's spending, grouped by category, to Google's
+  Gemini API and returns three short, personalised savings tips. Falls back to
+  rule-based tips automatically if no API key is set or the AI call fails, so the
+  feature never breaks.
+
+## Tech Stack
+
+- **Backend:** Node.js, Express, MongoDB (Mongoose)
+- **Frontend:** Plain HTML, CSS, and JavaScript (served as static files by Express)
+- **AI:** Google Gemini API (`gemini-3.8-flash`)
+- **Fonts:** Fraunces (headings) and Inter (body), via Google Fonts
+
+## Setup (GitHub Codespaces)
+
+1. Install dependencies:
