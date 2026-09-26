@@ -67,6 +67,7 @@ document.getElementById('transaction-form').addEventListener('submit', async (e)
   e.target.reset();
   loadBudgetSummary();
   loadForecast(); // spending changed, so refresh the forecast too
+  loadCalendar();
 });
 
 // ---------- Load + render budget summary (progress bars) ----------
@@ -88,7 +89,10 @@ async function loadBudgetSummary() {
         <div class="category-row">
           <div class="category-row-top">
             <span class="category-name">${escapeHtml(cat.category)}</span>
-            <span class="category-figures">$${cat.spent} / $${cat.budgetAmount}</span>
+            <span class="category-figures">
+              $${cat.spent} / $${cat.budgetAmount}
+              <button class="delete-category-btn" data-id="${cat.categoryId}" title="Remove ${escapeHtml(cat.category)}" aria-label="Remove ${escapeHtml(cat.category)}">&times;</button>
+            </span>
           </div>
           <div class="progress-track">
             <div class="progress-fill ${fillClass}" style="width: ${pct}%"></div>
@@ -98,6 +102,17 @@ async function loadBudgetSummary() {
     })
     .join('');
 }
+
+// Delete category button (event delegation, since rows are re-rendered each time)
+document.getElementById('budget-summary').addEventListener('click', async (e) => {
+  if (!e.target.classList.contains('delete-category-btn')) return;
+  const categoryId = e.target.dataset.id;
+  const confirmed = confirm('Remove this category? This only removes the budget entry - logged transactions stay in your history.');
+  if (!confirmed) return;
+
+  await fetch(`${API_BASE}/budget/categories/${categoryId}`, { method: 'DELETE' });
+  loadBudgetSummary();
+});
 
 // ---------- Load + render forecast ----------
 async function loadForecast() {
@@ -125,6 +140,54 @@ async function loadForecast() {
     <div class="forecast-label">Based on a daily average of $${data.dailyAverage} over ${data.daysSoFar} day(s)</div>
     <span class="trend-badge ${data.trend}">${capitalize(data.trend)}</span>
   `;
+}
+
+// ---------- Load + render the daily spending calendar ----------
+async function loadCalendar() {
+  const grid = document.getElementById('spending-calendar');
+  const weekdaysEl = document.getElementById('calendar-weekdays');
+  const res = await fetch(`${API_BASE}/forecast/calendar/${currentUserId}`);
+  const data = await res.json();
+
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  document.getElementById('calendar-month-label').textContent = `${monthNames[data.month]} ${data.year}`;
+
+  const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  weekdaysEl.innerHTML = weekdayLabels.map((d) => `<span>${d}</span>`).join('');
+
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === data.year && today.getMonth() === data.month;
+  const todayDate = today.getDate();
+
+  const cells = [];
+
+  // Empty cells to align the 1st of the month with the correct weekday
+  for (let i = 0; i < data.firstWeekday; i++) {
+    cells.push('<div class="calendar-day empty"></div>');
+  }
+
+  for (let day = 1; day <= data.daysInMonth; day++) {
+    const amount = data.dailyTotals[day] || 0;
+    const level = spendLevel(amount, data.highestDay);
+    const isToday = isCurrentMonth && day === todayDate;
+    cells.push(`
+      <div class="calendar-day ${level ? 'level-' + level : ''} ${isToday ? 'today' : ''}">
+        <span class="day-num">${day}</span>
+        ${amount > 0 ? `<span class="day-amount">$${amount}</span>` : ''}
+      </div>
+    `);
+  }
+
+  grid.innerHTML = cells.join('');
+}
+
+// Buckets a day's spend into 0 (none) - 3 (highest) relative to the month's peak day
+function spendLevel(amount, highestDay) {
+  if (amount <= 0 || highestDay <= 0) return 0;
+  const ratio = amount / highestDay;
+  if (ratio > 0.66) return 3;
+  if (ratio > 0.33) return 2;
+  return 1;
 }
 
 // ---------- Savings coach: get tips on demand ----------
@@ -160,4 +223,5 @@ function capitalize(str) {
   await initUser();
   loadBudgetSummary();
   loadForecast();
+  loadCalendar();
 })();

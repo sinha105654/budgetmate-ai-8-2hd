@@ -54,10 +54,25 @@
 
     <!-- ===== TAB 2: SPENDING FORECAST ===== -->
     <section id="forecast" class="tab-panel">
-      <div class="card">
+            <div class="card">
         <h2>This Month's Projection</h2>
         <div id="forecast-content" class="forecast-box">
           <p class="empty-state">Log some transactions in the Budget Planner tab first.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Daily Spending Calendar</h2>
+        <p id="calendar-month-label" class="calendar-month-label"></p>
+        <div id="calendar-weekdays" class="calendar-weekdays"></div>
+        <div id="spending-calendar" class="calendar-grid"></div>
+        <div class="calendar-legend">
+          <span>Less</span>
+          <span class="legend-swatch legend-0"></span>
+          <span class="legend-swatch legend-1"></span>
+          <span class="legend-swatch legend-2"></span>
+          <span class="legend-swatch legend-3"></span>
+          <span>More</span>
         </div>
       </div>
     </section>

@@ -200,6 +200,30 @@ input:focus-visible {
 .category-figures {
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delete-category-btn {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-category-btn:hover {
+  background: var(--brick-soft);
+  color: var(--brick);
 }
 
 .progress-track {
@@ -266,6 +290,93 @@ input:focus-visible {
   background: var(--gold-soft);
   color: var(--gold);
 }
+
+/* ---------- Spending calendar ---------- */
+.calendar-month-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin: -0.4rem 0 0.9rem;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 0.4rem;
+}
+
+.calendar-weekdays span {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  position: relative;
+}
+
+.calendar-day.empty {
+  border: none;
+  background: transparent;
+}
+
+.calendar-day .day-num {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.calendar-day .day-amount {
+  font-size: 0.62rem;
+  color: var(--ink-soft);
+}
+
+.calendar-day.level-1 { background: var(--emerald-soft); }
+.calendar-day.level-2 { background: #b9d6c7; }
+.calendar-day.level-3 { background: var(--emerald); }
+.calendar-day.level-3 .day-num,
+.calendar-day.level-3 .day-amount { color: #ffffff; }
+
+.calendar-day.today {
+  border: 2px solid var(--ink);
+}
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 0.9rem;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.legend-0 { background: var(--bg); border: 1px solid var(--line); }
+.legend-1 { background: var(--emerald-soft); }
+.legend-2 { background: #b9d6c7; }
+.legend-3 { background: var(--emerald); }
 
 /* ---------- Savings coach ---------- */
 .tips-box {

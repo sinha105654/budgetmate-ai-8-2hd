@@ -48,4 +48,38 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
+// Daily spending calendar for the current month - powers the heatmap-style
+// calendar view on the Spending Forecast tab.
+router.get('/calendar/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-indexed (0 = January)
+
+    const startOfMonth = new Date(year, month, 1, 0, 0, 0, 0);
+    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
+
+    const transactions = await Transaction.find({
+      userId,
+      date: { $gte: startOfMonth, $lte: endOfMonth },
+    });
+
+    // Group spending by day-of-month (1-31)
+    const dailyTotals = {};
+    transactions.forEach((t) => {
+      const day = new Date(t.date).getDate();
+      dailyTotals[day] = Math.round((dailyTotals[day] || 0) + t.amount);
+    });
+
+    const daysInMonth = endOfMonth.getDate();
+    const firstWeekday = startOfMonth.getDay(); // 0 = Sunday, for calendar grid alignment
+    const highestDay = Math.max(0, ...Object.values(dailyTotals));
+
+    res.json({ year, month, daysInMonth, firstWeekday, dailyTotals, highestDay });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

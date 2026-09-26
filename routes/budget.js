@@ -43,6 +43,7 @@ router.get('/summary/:userId', async (req, res) => {
         .filter((t) => t.category === cat.name)
         .reduce((sum, t) => sum + t.amount, 0);
       return {
+        categoryId: cat._id,
         category: cat.name,
         budgetAmount: cat.budgetAmount,
         spent,
@@ -52,6 +53,20 @@ router.get('/summary/:userId', async (req, res) => {
     });
 
     res.json(summary);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Remove a budget category (the category entry only - past transactions stay
+// in history, they just won't have a budgeted row shown for them anymore)
+router.delete('/categories/:id', async (req, res) => {
+  try {
+    const deleted = await BudgetCategory.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    res.json({ message: 'Category deleted', category: deleted });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
