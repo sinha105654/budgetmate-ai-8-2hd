@@ -1,28 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const Transaction = require('../models/Transaction');
+const BudgetCategory = require('../models/BudgetCategory');
+const { getMonthRange } = require('../utils/month');
 
-// Simple forecast: average daily spend so far this month, projected to a full 30 days,
-// plus a basic trend comparing the first half vs second half of logged transactions.
+// Forecast for THIS month only:
+// average spend per day so far this month, projected to the full month.
+// Only counts categories that still exist in the budget.
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const transactions = await Transaction.find({ userId }).sort({ date: 1 });
+    const { start, end, daysInMonth, dayOfMonth } = getMonthRange();
+
+    const categories = await BudgetCategory.find({ userId });
+    const names = categories.map((c) => c.name);
+
+    const transactions = (
+      await Transaction.find({ userId, date: { $gte: start, $lte: end } }).sort({ date: 1 })
+    ).filter((t) => names.includes(t.category));
 
     if (transactions.length === 0) {
-      return res.json({ message: 'No transactions yet', forecastTotal: 0, trend: 'flat' });
+      return res.json({ message: 'No transactions yet this month', forecastTotal: 0, trend: 'flat' });
     }
 
     const total = transactions.reduce((sum, t) => sum + t.amount, 0);
-    const firstDate = transactions[0].date;
-    const daysSoFar = Math.max(
-      1,
-      Math.ceil((Date.now() - new Date(firstDate)) / (1000 * 60 * 60 * 24))
-    );
+    const daysSoFar = dayOfMonth;
 
-    // Not enough history yet to extrapolate responsibly - a single day's spending
-    // projected across 30 days produces wildly unrealistic numbers. Show the
-    // actual total instead, with a note, until there's at least 3 days of data.
+    // Too early in the month to project responsibly.
+    // A day or two of spending stretched across a month gives unrealistic numbers.
     const MIN_DAYS_FOR_FORECAST = 3;
     if (daysSoFar < MIN_DAYS_FOR_FORECAST) {
       return res.json({
@@ -34,13 +39,14 @@ router.get('/:userId', async (req, res) => {
     }
 
     const dailyAverage = total / daysSoFar;
-    const forecastTotal = Math.round(dailyAverage * 30);
+    const forecastTotal = Math.round(dailyAverage * daysInMonth);
 
-    // basic trend: compare spend in first half vs second half of the logged period
+    // Trend: compare the first half vs the second half of this month's transactions
     const mid = Math.floor(transactions.length / 2);
     const firstHalfTotal = transactions.slice(0, mid).reduce((s, t) => s + t.amount, 0);
     const secondHalfTotal = transactions.slice(mid).reduce((s, t) => s + t.amount, 0);
-    const trend = secondHalfTotal > firstHalfTotal ? 'rising' : secondHalfTotal < firstHalfTotal ? 'falling' : 'flat';
+    const trend =
+      secondHalfTotal > firstHalfTotal ? 'rising' : secondHalfTotal < firstHalfTotal ? 'falling' : 'flat';
 
     res.json({ dailyAverage: Math.round(dailyAverage), forecastTotal, trend, daysSoFar });
   } catch (err) {
@@ -48,35 +54,37 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-// Daily spending calendar for the current month - powers the heatmap-style
-// calendar view on the Spending Forecast tab.
+// Daily spending calendar for the current month.
+// Only counts categories that still exist in the budget.
 router.get('/calendar/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth(); // 0-indexed (0 = January)
+    const { start, end, daysInMonth } = getMonthRange();
 
-    const startOfMonth = new Date(year, month, 1, 0, 0, 0, 0);
-    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
+    const categories = await BudgetCategory.find({ userId });
+    const names = categories.map((c) => c.name);
 
-    const transactions = await Transaction.find({
-      userId,
-      date: { $gte: startOfMonth, $lte: endOfMonth },
-    });
+    const transactions = (
+      await Transaction.find({ userId, date: { $gte: start, $lte: end } })
+    ).filter((t) => names.includes(t.category));
 
-    // Group spending by day-of-month (1-31)
     const dailyTotals = {};
     transactions.forEach((t) => {
       const day = new Date(t.date).getDate();
       dailyTotals[day] = Math.round((dailyTotals[day] || 0) + t.amount);
     });
 
-    const daysInMonth = endOfMonth.getDate();
-    const firstWeekday = startOfMonth.getDay(); // 0 = Sunday, for calendar grid alignment
+    const firstWeekday = start.getDay(); // 0 = Sunday, for the calendar grid
     const highestDay = Math.max(0, ...Object.values(dailyTotals));
 
-    res.json({ year, month, daysInMonth, firstWeekday, dailyTotals, highestDay });
+    res.json({
+      year: start.getFullYear(),
+      month: start.getMonth(),
+      daysInMonth,
+      firstWeekday,
+      dailyTotals,
+      highestDay,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

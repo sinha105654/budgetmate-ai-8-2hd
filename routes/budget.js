@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const BudgetCategory = require('../models/BudgetCategory');
 const Transaction = require('../models/Transaction');
+const { getMonthRange } = require('../utils/month');
 
 // Create or update a budget category for a user
 router.post('/categories', async (req, res) => {
@@ -24,7 +25,20 @@ router.post('/transactions', async (req, res) => {
     if (!userId || !category || amount == null || amount < 0) {
       return res.status(400).json({ error: 'userId, category and a valid amount are required' });
     }
-    const transaction = await Transaction.create({ userId, category, amount, note });
+
+    // The category must already exist in the user's budget (capital letters don't matter)
+    const categories = await BudgetCategory.find({ userId });
+    const match = categories.find(
+      (c) => c.name.toLowerCase() === String(category).trim().toLowerCase()
+    );
+    if (!match) {
+      return res.status(400).json({
+        error: `"${category}" is not in your budget yet. Add it as a category first.`,
+      });
+    }
+
+    // Save with the exact category name, so "food" and "Food" are treated the same
+    const transaction = await Transaction.create({ userId, category: match.name, amount, note });
     res.status(201).json(transaction);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -35,8 +49,12 @@ router.post('/transactions', async (req, res) => {
 router.get('/summary/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    const { start, end } = getMonthRange();
     const categories = await BudgetCategory.find({ userId });
-    const transactions = await Transaction.find({ userId });
+    const transactions = await Transaction.find({
+      userId,
+      date: { $gte: start, $lte: end },
+    });
 
     const summary = categories.map((cat) => {
       const spent = transactions

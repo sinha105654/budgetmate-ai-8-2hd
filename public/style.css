@@ -407,6 +407,8 @@ input:focus-visible {
   margin: 0;
 }
 
+
+
 /* ---------- Mobile ---------- */
 @media (max-width: 480px) {
   .inline-form {
@@ -415,4 +417,38 @@ input:focus-visible {
   .forecast-number {
     font-size: 2.25rem;
   }
+}
+
+
+.quick-log { display: flex; gap: 0.6rem; margin-bottom: 0.5rem; }
+.quick-log input { flex: 1; }
+.quick-msg { font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 1rem; min-height: 1.2em; }
+
+
+.budget-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+.over-alert { background: var(--brick-soft); color: var(--brick); border-left: 4px solid var(--brick); }
+.near-alert { background: var(--gold-soft); color: #7a5a12; border-left: 4px solid var(--gold); }
+
+
+.quick-log input {
+  min-width: 120px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.quick-log input:focus {
+  outline: none;
+  border-color: var(--emerald);
+  box-shadow: 0 0 0 3px var(--emerald-soft);
 }

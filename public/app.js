@@ -76,6 +76,23 @@ async function loadBudgetSummary() {
   const res = await fetch(`${API_BASE}/budget/summary/${currentUserId}`);
   const summary = await res.json();
 
+  // ----- Warning banners -----
+  const alertBox = document.getElementById('budget-alert');
+  const over = summary.filter((c) => c.percentUsed >= 100);
+  const near = summary.filter((c) => c.percentUsed >= 80 && c.percentUsed < 100);
+  let alertHtml = '';
+  if (over.length) {
+    const list = over
+      .map((c) => `${escapeHtml(c.category)} ($${c.spent} of $${c.budgetAmount}, $${c.spent - c.budgetAmount} over)`)
+      .join(', ');
+    alertHtml += `<div class="budget-alert over-alert">Over budget: ${list}</div>`;
+  }
+  if (near.length) {
+    const list = near.map((c) => `${escapeHtml(c.category)} (${c.percentUsed}% used)`).join(', ');
+    alertHtml += `<div class="budget-alert near-alert">Close to the limit: ${list}</div>`;
+  }
+  alertBox.innerHTML = alertHtml;
+
   if (!summary.length) {
     container.innerHTML = '<p class="empty-state">Add a category and log a transaction to see your progress here.</p>';
     return;
@@ -217,6 +234,38 @@ function escapeHtml(str) {
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+
+// ---------- Type-to-log (AI fills the form, the user confirms) ----------
+document.getElementById('quick-btn').addEventListener('click', async () => {
+  const text = document.getElementById('quick-text').value.trim();
+  const msg = document.getElementById('quick-msg');
+  const btn = document.getElementById('quick-btn');
+  if (!text) return;
+
+  btn.disabled = true;
+  msg.textContent = 'Reading your message...';
+  try {
+    const res = await fetch('/api/quick-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUserId, text }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      msg.textContent = data.error || 'Something went wrong.';
+    } else {
+      document.getElementById('txn-category').value = data.category;
+      document.getElementById('txn-amount').value = data.amount;
+      document.getElementById('txn-note').value = data.note;
+      msg.textContent = 'Check the details below, then click Log Spend.';
+      document.getElementById('quick-text').value = '';
+    }
+  } catch (e) {
+    msg.textContent = 'Could not reach the AI. Please use the form below.';
+  }
+  btn.disabled = false;
+});
 
 // ---------- Boot ----------
 (async function start() {

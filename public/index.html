@@ -36,6 +36,11 @@
 
       <div class="card">
         <h2>Log a Transaction</h2>
+        <div class="quick-log">
+          <input type="text" id="quick-text" placeholder='Type it: "spent 12 on sport"' />
+          <button type="button" id="quick-btn">Fill with AI</button>
+        </div>
+        <p id="quick-msg" class="quick-msg"></p>
         <form id="transaction-form" class="inline-form">
           <input type="text" id="txn-category" placeholder="Category" required />
           <input type="number" id="txn-amount" placeholder="Amount ($)" min="0" required />
@@ -46,6 +51,7 @@
 
       <div class="card">
         <h2>Your Budget Overview</h2>
+        <div id="budget-alert"></div>
         <div id="budget-summary" class="summary-grid">
           <p class="empty-state">Add a category and log a transaction to see your progress here.</p>
         </div>
