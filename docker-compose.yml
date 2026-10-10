@@ -1,0 +1,25 @@
+# Runs BudgetMate and its database together.
+# Start:  docker compose up -d --build
+# Stop:   docker compose down
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+
+  app:
+    build: .
+    image: budgetmate-ai:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: mongodb://mongo:27017/budgetmate
+      PORT: 5000
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "${APP_PORT:-5000}:5000"
+
+volumes:
+  mongo-data:
