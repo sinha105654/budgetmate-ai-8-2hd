@@ -1,22 +1,19 @@
-# Small Node image
-FROM node:22-alpine
-
+FROM node:22-alpine AS base
 WORKDIR /app
-
-# Install only what the app needs to run
 COPY package*.json ./
-RUN npm ci --omit=dev
 
-# Copy the app code
+# Test stage: installs everything and runs the tests. The build fails if a test fails.
+FROM base AS test
+RUN npm ci
 COPY . .
+RUN npm test
 
-# Run as a normal user, not root
+# Final app image: only what the app needs to run
+FROM base AS runtime
+RUN npm ci --omit=dev
+COPY . .
 USER node
-
 EXPOSE 5000
-
-# Docker marks the container "unhealthy" if /health stops answering
 HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
   CMD wget -qO- http://localhost:5000/health || exit 1
-
 CMD ["node", "server.js"]

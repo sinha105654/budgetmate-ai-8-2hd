@@ -3,4 +3,3 @@ coverage
 .git
 .env
 *.md
-tests
