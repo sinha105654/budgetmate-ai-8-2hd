@@ -10,7 +10,7 @@ RUN npm test
 
 # Final app image: only what the app needs to run
 FROM base AS runtime
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 COPY . .
 USER node
 EXPOSE 5000
